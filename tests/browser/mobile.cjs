@@ -1,0 +1,44 @@
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
+const {readSavedSection}=require('./save-fixture.cjs');
+const root=path.resolve(__dirname,'../..'),key='realm-owner-mobile-save-slots-v1',legacy={version:1,items:[{id:'1',name:'罗非鱼',x:0,y:0},{id:'2',name:'长吻雀鳝',x:null,y:null}],storage:{version:1,quests:{version:1,mainCompleted:1,counts:[0,0],side1Done:false},coins:1000,activeBox:0,boxes:Array.from({length:10},(_,i)=>({unlocked:i===0,items:[]}))}};
+const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.png':'image/png','.webp':'image/webp','.wav':'audio/wav'};
+async function main(){
+ const server=http.createServer((req,res)=>{try{
+  const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname),file=path.resolve(root,'.'+(pathname==='/'?'/index.html':pathname)),relative=path.relative(root,file);
+  if(relative.startsWith('..')||path.isAbsolute(relative)||relative.split(path.sep).some(p=>p.startsWith('.'))||!types[path.extname(file)])return res.writeHead(403).end();
+  res.writeHead(200,{'Content-Type':types[path.extname(file)],'Cache-Control':'no-store'}).end(fs.readFileSync(file));
+ }catch{res.writeHead(404).end();}});let browser;
+ try{
+  await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
+  const url='http://127.0.0.1:'+server.address().port+'/';
+  browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',args:['--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader']});
+  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const originalKey='fisher-realm-save-slots-v1',original='desktop-save-must-stay-untouched';
+  await context.addInitScript(({originalKey,original})=>{if(!localStorage.getItem(originalKey))localStorage.setItem(originalKey,original);window.mobileTime=100;Math.random=()=>.99;}, {originalKey,original});
+  await page.route('**/game-time.js*',r=>r.fulfill({contentType:'text/javascript',body:fs.readFileSync(path.join(root,'game-time.js'),'utf8').replace('performance.now()/1000','globalThis.mobileTime').replace('now(raw=this.raw()){','now(raw=this.raw()){raw=this.raw();')}));
+  await page.route('**/fish-data.js*',r=>r.fulfill({contentType:'text/javascript',body:fs.readFileSync(path.join(root,'fish-data.js'),'utf8').split('\n').map(line=>{if(!line.includes('"id":"TILAPIA"'))return line;const fish=JSON.parse(line.trim().replace(/,$/,''));Object.assign(fish,{speed:.01,strength:{amount:.01,interval:10},stamina:10000});return JSON.stringify(fish)+',';}).join('\n')}));
+  const state=()=>page.evaluate(()=>window.lakeside.getState());
+  async function loaded(){await page.waitForFunction(()=>window.lakeside);await page.locator('#loading').waitFor({state:'hidden'});}
+  async function tick(seconds){const frame=await page.evaluate(s=>{window.mobileTime+=s;return window.lakeside.getState().frames;},seconds);await page.waitForFunction(f=>window.lakeside.getState().frames>f,frame);}
+  async function owner(){await page.locator('#settings-toggle').tap();await page.locator('#realm-command').fill('realm owner');await page.locator('#owner-fish').selectOption({label:'罗非鱼'});await page.locator('#owner-fish-form .primary').tap();await page.waitForFunction(()=>!window.lakeside.getState().paused);}
+  const cdp=await context.newCDPSession(page),points=new Map();
+  async function touch(type,id,x,y){const ended=points.get(id);if(type==='touchStart'||type==='touchMove')points.set(id,{id,x,y,radiusX:5,radiusY:5,force:1});else points.delete(id);await cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'&&points.size?[ended]:[...points.values()]});}
+  const button=page.locator('#mobile-action');async function buttonPoint(){const b=await button.boundingBox();return{x:b.x+b.width/2,y:b.y+b.height/2};}
+  const shots=path.join(root,'.qa/mobile');fs.mkdirSync(shots,{recursive:true});
+  await page.goto(url);await loaded();assert.match(await page.title(),/realm owner mobile/);assert.equal((await state()).storage.coins,0);assert.equal(await button.textContent(),'抛竿');assert.equal(await button.isVisible(),true);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  const yaw=(await state()).targetYaw;await owner();await touch('touchStart',1,160,410);await touch('touchMove',1,200,415);await touch('touchEnd',1);assert.notEqual((await state()).targetYaw,yaw);
+  await button.tap();assert.equal((await state()).fishing.state,'casting');await tick(13.1);assert.equal((await state()).fishing.state,'bite');assert.equal(await button.textContent(),'提竿');await button.tap();assert.equal((await state()).fishing.state,'fighting');await tick(.05);assert.equal(await button.textContent(),'收线');
+  const p=await buttonPoint();await touch('touchStart',2,p.x,p.y);assert.equal((await state()).fishing.reeling,true);const distance=(await state()).fishing.distance;
+  await touch('touchStart',3,150,410);const rod=(await state()).fishing.rodYaw;await touch('touchMove',3,175,410);assert.notEqual((await state()).fishing.rodYaw,rod);assert.equal((await state()).fishing.reeling,true);await touch('touchEnd',3);assert.equal((await state()).fishing.reeling,true,'lifting turning finger must keep reeling');await tick(.2);assert.ok((await state()).fishing.distance<distance);await touch('touchMove',2,p.x-70,p.y-50);assert.equal((await state()).fishing.reeling,true,'capture retains hold outside button');await touch('touchEnd',2);assert.equal((await state()).fishing.reeling,false);
+  await touch('touchStart',4,155,410);await touch('touchStart',5,p.x,p.y);assert.equal((await state()).fishing.reeling,true);await touch('touchEnd',5);assert.equal((await state()).fishing.reeling,false);assert.notEqual((await state()).mobile.dragPointer,null);await touch('touchMove',4,140,410);await touch('touchEnd',4);
+  await touch('touchStart',6,p.x,p.y);await cdp.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});points.clear();assert.equal((await state()).fishing.reeling,false);assert.equal((await state()).mobile.holding,false);
+  await touch('touchStart',7,p.x,p.y);await page.evaluate(()=>window.dispatchEvent(new Event('blur')));assert.equal((await state()).fishing.reeling,false);await touch('touchEnd',7);assert.equal((await state()).mobile.actionPointer,null);
+  await touch('touchStart',8,p.x,p.y);await page.locator('#backpack-toggle').tap();assert.equal((await state()).paused,true);assert.equal((await state()).fishing.reeling,false);assert.equal(await button.isVisible(),false);await touch('touchEnd',8);await page.locator('#inventory-close').tap();await page.waitForFunction(()=>!window.lakeside.getState().paused);await tick(.05);assert.equal(await button.isVisible(),true);
+  const meters=await page.locator('#fishing-meters').boundingBox();assert.ok(meters.x>=0&&meters.x+meters.width<=390,'portrait meters stay on screen');await page.screenshot({path:path.join(shots,'portrait.png')});await page.setViewportSize({width:844,height:390});await tick(.05);assert.equal(await button.isVisible(),true);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:path.join(shots,'landscape.png')});
+  // Save a mobile-only balance; the desktop key must remain byte-for-byte unchanged.
+  await page.locator('#settings-toggle').tap();await page.locator('#realm-command').fill('rich');await page.locator('#realm-command').press('Enter');await page.locator('#rich-amount').fill('42');await page.locator('#rich-form .primary').tap();assert.equal((await state()).storage.coins,42);assert.equal(await page.evaluate(k=>localStorage.getItem(k),originalKey),original);await page.reload();await loaded();assert.equal((await state()).storage.coins,42);assert.equal(await page.evaluate(k=>localStorage.getItem(k),originalKey),original);assert.deepEqual(errors,[]);
+  const report={result:'passed',touchCastAndHook:true,largeHoldButton:true,realReelingDistance:true,simultaneousTurnAndReel:true,eitherFingerLiftsIndependently:true,pointerCapture:true,cancelAndBlurStop:true,modalStopsAndHides:true,portraitAndLandscape:true,desktopSaveUntouched:true,mobileSaveReload:true,pageErrors:errors};fs.writeFileSync(path.join(shots,'acceptance.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report));
+ }finally{if(browser)await browser.close();if(server.listening)await new Promise(resolve=>server.close(resolve));}
+}
+main().catch(error=>{console.error(error);process.exitCode=1;});
