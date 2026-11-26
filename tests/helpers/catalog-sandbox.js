@@ -1,11 +1,20 @@
 import {mkdir,readFile,writeFile,copyFile} from 'node:fs/promises';
-import {join,dirname} from 'node:path';
+import {join,dirname,posix} from 'node:path';
 
 // A new fish needs both metadata and a reviewed probability allocation.
 export async function copyCatalogSandbox(temp,extra){
-  for(const file of ['backpack-upgrades.js','equipment-rules.js','item-data.js','fishing-rules.js','inventory-rules.js','fish-discoveries.js','fish-guide.js',
+  const files=['backpack-upgrades.js','equipment-rules.js','item-data.js','fishing-rules.js','inventory-rules.js','fish-discoveries.js','fish-guide.js',
     'fish-help.js','fish-encounters.js','map-registry.js','maps/summer-pond.js','inventory-images.js','release-assets.js',
-    'tests/american-eel.test.js','tests/helpers/encounter-unit.js','scripts/check-fish-rules.cjs']){
+    'tests/american-eel.test.js','tests/helpers/encounter-unit.js','scripts/check-fish-rules.cjs'];
+  const copied=new Set();
+  for(let index=0;index<files.length;index++){
+    const file=files[index];if(copied.has(file))continue;copied.add(file);
+    const content=await readFile(new URL('../../'+file,import.meta.url),'utf8');
+    // Follow static code dependencies as maps are added, without reading any fish images.
+    for(const match of content.matchAll(/(?:^|\n)\s*import\s[^;]*?from\s*['"](\.[^'"]+)['"]/g)){
+      const dependency=posix.normalize(posix.join(posix.dirname(file),match[1]));
+      if(!dependency.startsWith('../')&&!copied.has(dependency))files.push(dependency);
+    }
     await mkdir(dirname(join(temp,file)),{recursive:true});
     await copyFile(new URL('../../'+file,import.meta.url),join(temp,file));
   }
@@ -17,5 +26,11 @@ export async function copyCatalogSandbox(temp,extra){
   const adjusted=map.replace('createEncounterTable(SUMMER_POND_PROBABILITIES)',
     `createEncounterTable([...SUMMER_POND_PROBABILITIES.map(row=>row.id==='BLUEGILL'?{...row,percent:1.5}:row),${JSON.stringify({id:extra.id,percent:1})}])`);
   await mkdir(join(temp,'maps'),{recursive:true});await writeFile(join(temp,'maps/summer-pond-fish.js'),adjusted);
+  // A synthetic fish stays absent from other explicit map allocations.
+  for(const file of copied)if(file.startsWith('maps/')&&file.endsWith('-fish.js')&&file!=='maps/summer-pond-fish.js'){
+    const path=join(temp,file),source=await readFile(path,'utf8');
+    const patched=source.replace(/createEncounterTable\((\w+)(?=,|\))/g,(_,table)=>'createEncounterTable([...'+table+','+JSON.stringify({id:extra.id,percent:0})+']');
+    await writeFile(path,patched);
+  }
   await writeFile(join(temp,'package.json'),'{"type":"module"}');
 }

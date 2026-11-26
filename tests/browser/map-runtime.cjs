@@ -9,7 +9,7 @@ const server=http.createServer((req,res)=>{try{const name=decodeURIComponent(new
   page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(()=>{localStorage.setItem('realm-owner-mobile-inventory-v1',JSON.stringify({version:1,items:[{id:'1',name:'美洲鳗鲡',x:0,y:0}]}));});
   await page.goto('http://127.0.0.1:'+server.address().port+'/');await page.locator('#loading').waitFor({state:'hidden'});
-  await page.waitForFunction(()=>Boolean(window.lakeside),null,{timeout:10000});
+  await require('./enter-lake.cjs')(page);await page.waitForFunction(()=>Boolean(window.lakeside),null,{timeout:10000});
   const initial=await page.evaluate(()=>window.lakeside.getState());
   assert.equal(initial.scene,'summer-pond');assert.equal(initial.treeCount,137);assert.equal(initial.targetFps,25);
   assert.deepEqual(initial.camera,[0,1.78,32]);assert.deepEqual(initial.chairs.map(c=>c.horizontalDistance),[10,0,10]);
@@ -105,7 +105,7 @@ const server=http.createServer((req,res)=>{try{const name=decodeURIComponent(new
     }finally{fishing?.dispose();equipment.dispose();window.Audio=AudioBefore;Math.random=random;}
     check(localStorage.getItem('realm-owner-mobile-inventory-v1')===inventoryBefore,'map lifecycle changed inventory');
     check(localStorage.getItem('realm-owner-mobile-discoveries-v1')===guideBefore,'map lifecycle changed discoveries');
-    check(listMaps().length===1,'a second production map was added');
+    check(listMaps().map(m=>m.id).join(',')==='summer-pond,amazon-confluence','registered production maps differ');
     return {cycles:cycleReports,memory,customShorelineMatchesTerrainAndShader:true,failedConstructionPreservesCamera:true,constructionFailureCleaned:true,reflectionFailureRestored:true,
       injectedWaterAndPool:true,catchAndRetrieval:true,globalSavesPreserved:true,registeredMaps:listMaps()};
   });

@@ -1,4 +1,5 @@
 import {copyCatalogSandbox} from './helpers/catalog-sandbox.js';
+import {listMaps,getMapEncounterTable} from '../map-registry.js';
 import {unitForFish} from './helpers/encounter-unit.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -25,16 +26,17 @@ test('pre-refactor profiles remain exact except the approved catch color synchro
 test('all catalog fish have matching assets, valid intervals and automatic owner/save support',async()=>{
  assert.equal(rules.FISH_SPECIES.length,FISH_DATA.length);assert.equal(Object.keys(FISH_ITEMS).length,FISH_DATA.length);
  for(const [i,data]of FISH_DATA.entries()){
-  assert.equal(rules.pickFish(unitForFish(FISH_DATA[i],0)),rules.FISH_SPECIES[i]);assert.equal(rules.pickFish(unitForFish(FISH_DATA[i],1-1e-7)),rules.FISH_SPECIES[i]);
+  const table=listMaps().map(m=>getMapEncounterTable(m.id)).find(t=>t.probabilityFor(data.id)>0),range=table.ranges.find(r=>r.id===data.id);
+  assert.equal(rules.pickFish(range.start/10000,table.fishPool,table),rules.FISH_SPECIES[i]);assert.equal(rules.pickFish((range.end-.001)/10000,table.fishPool,table),rules.FISH_SPECIES[i]);
   const f=new rules.FishingSession(()=>0);assert.equal(f.setForcedFish(data.name),true);f.cast(0,0);assert.equal(f.profile,rules.FISH_SPECIES[i]);assert.equal(f.fishStamina,data.stamina);
   const b=new FishInventory();b.add(data.name);assert.deepEqual(new FishInventory(b.serialize()).serialize(),b.serialize());
   if(data.inventory.image)assert.ok((await readFile(new URL('../fish-images/'+data.inventory.image,import.meta.url))).length>0);
  }
- assert.equal(rules.pickFish(1),rules.FISH_SPECIES.at(-1));
+ assert.equal(rules.pickFish(1),getMapEncounterTable().fishPool.at(-1));
 });
 
 test('validation rejects duplicate identities, invalid resources, unsupported legs, angles and bag shapes',()=>{
- const invalid=[e=>e.id='',e=>e.name=' ',e=>e.strength.amount=0,e=>e.strength.interval=NaN,e=>e.speed=Infinity,e=>e.restDuration=-1,e=>e.stamina=0,e=>e.catchColor='green',e=>e.struggle.minAngle=-1,e=>e.struggle.maxAngle=91,e=>e.struggle.minAngle=80,e=>e.struggle.durations=[],e=>e.struggle.durations=[1,1,1,1,1,1],e=>e.struggle.durations=[0],e=>e.struggle.switchPause=-1,e=>e.inventory.w=6,e=>e.inventory.h=4,e=>e.inventory.w=1.5,e=>e.inventory.color='blue',e=>e.inventory.image='../outside.png',e=>e.specials=null];
+ const invalid=[e=>e.id='',e=>e.name=' ',e=>e.strength.amount=0,e=>e.strength.interval=NaN,e=>e.speed=Infinity,e=>e.restDuration=-1,e=>e.stamina=0,e=>e.catchColor='green',e=>e.struggle.minAngle=-1,e=>e.struggle.maxAngle=91,e=>e.struggle.minAngle=80,e=>e.struggle.durations=[],e=>e.struggle.durations=[1,1,1,1,1,1,1,1,1],e=>e.struggle.durations=[0],e=>e.struggle.switchPause=-1,e=>e.inventory.w=7,e=>e.inventory.h=4,e=>e.inventory.w=1.5,e=>e.inventory.color='blue',e=>e.inventory.image='../outside.png',e=>e.specials=null];
  for(const change of invalid){const entry=clone(FISH_DATA[1]);change(entry);assert.throws(()=>createFishCatalog([entry]),TypeError);}
  assert.throws(()=>createFishCatalog([]),TypeError);assert.throws(()=>createFishCatalog([clone(FISH_DATA[0]),clone(FISH_DATA[0])]),/duplicate/);
  const sameName=clone(FISH_DATA[0]);sameName.id='OTHER';assert.throws(()=>createFishCatalog([clone(FISH_DATA[0]),sameName]),/duplicate name/);
@@ -49,7 +51,7 @@ test('adding metadata and an explicit map probability supports encounters, owner
  await copyCatalogSandbox(temp,extra);
  const r=await import(pathToFileURL(join(temp,'fishing-rules.js'))),inv=await import(pathToFileURL(join(temp,'inventory-rules.js')));
  assert.equal(r.FISH_SPECIES.length,FISH_DATA.length+1);assert.equal(r.pickFish(1).name,extra.name);assert.deepEqual(inv.FISH_ITEMS[extra.name],extra.inventory);
- const f=new r.FishingSession(()=>0);assert.equal(f.setForcedFish(extra.name),true);f.cast(0,0);assert.equal(f.hook(6),true);assert.equal(f.profile.name,extra.name);assert.equal(f.fishStamina,12);
+ const f=new r.FishingSession(()=>0,{timing:{minWait:6,maxWait:13,hookWindow:1.45}});assert.equal(f.setForcedFish(extra.name),true);f.cast(0,0);assert.equal(f.hook(6),true);assert.equal(f.profile.name,extra.name);assert.equal(f.fishStamina,12);
  f.setRodYaw(f.struggleYaw,6);f.setReeling(true,6);f.advance(6.2);assert.equal(f.durability,98);f.advance(6.25);assert.equal(f.fishStamina,9);
  f.fishStamina=0;f.fishPhase='exhausted';f.phaseEndsAt=Infinity;f.setRodYaw(f.fishYaw,6.25);f.advance(13);assert.equal(f.lastCatchName,extra.name);assert.equal(f.lastCatchColor,extra.catchColor);assert.equal(f.ownerState.remaining,9);
  const old={version:1,items:baseline.profiles.map((p,i)=>({id:String(i+1),name:p.name,x:null,y:null}))};const b=new inv.FishInventory(old);assert.deepEqual(b.serialize(),old);b.add(extra.name);assert.equal(b.items.at(-1).name,extra.name);assert.deepEqual(new inv.FishInventory(b.serialize()).serialize(),b.serialize());

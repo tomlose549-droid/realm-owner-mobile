@@ -1,0 +1,385 @@
+{
+  "version": 1,
+  "revision": 17,
+  "activeId": "2",
+  "slots": [
+    {
+      "id": "1",
+      "createdAt": "2026-11-01T00:00:01.000Z",
+      "data": {
+        "inventory": {
+          "version": 1,
+          "backpackLevel": 0,
+          "items": [
+            {
+              "id": "1",
+              "name": "罗非鱼",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "id": "2",
+              "name": "长吻雀鳝",
+              "x": null,
+              "y": null
+            },
+            {
+              "id": "3",
+              "name": "2号亮片",
+              "x": 2,
+              "y": 1,
+              "quantity": 23
+            }
+          ],
+          "storage": {
+            "version": 1,
+            "coins": 1234,
+            "activeBox": 9,
+            "boxes": [
+              {
+                "unlocked": true,
+                "items": [
+                  {
+                    "id": "4",
+                    "name": "普通鲤鱼",
+                    "x": 1,
+                    "y": 1
+                  }
+                ]
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": true,
+                "items": [
+                  {
+                    "id": "7",
+                    "name": "3号鱼线",
+                    "x": 3,
+                    "y": 3,
+                    "lineWear": 14
+                  }
+                ]
+              }
+            ],
+            "equipment": {
+              "line": {
+                "id": "5",
+                "name": "1号鱼线",
+                "x": null,
+                "y": null,
+                "lineWear": 13
+              },
+              "reel": {
+                "id": "6",
+                "name": "1号渔轮-初学者",
+                "x": null,
+                "y": null
+              }
+            },
+            "quests": {
+              "version": 1,
+              "mainCompleted": 4,
+              "counts": [
+                0,
+                0
+              ],
+              "side1Done": true,
+              "mainRewarded": 5
+            }
+          }
+        },
+        "discoveries": {
+          "version": 1,
+          "fishIds": [
+            "TILAPIA",
+            "LONGNOSE_GAR",
+            "COMMON_CARP"
+          ]
+        }
+      }
+    },
+    {
+      "id": "2",
+      "createdAt": "2026-11-01T00:00:02.000Z",
+      "data": {
+        "inventory": {
+          "version": 1,
+          "backpackLevel": 3,
+          "items": [
+            {
+              "id": "1",
+              "name": "罗非鱼",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "id": "2",
+              "name": "长吻雀鳝",
+              "x": null,
+              "y": null
+            },
+            {
+              "id": "3",
+              "name": "2号亮片",
+              "x": 2,
+              "y": 1,
+              "quantity": 23
+            }
+          ],
+          "storage": {
+            "version": 1,
+            "coins": 5678,
+            "activeBox": 9,
+            "boxes": [
+              {
+                "unlocked": true,
+                "items": [
+                  {
+                    "id": "4",
+                    "name": "普通鲤鱼",
+                    "x": 1,
+                    "y": 1
+                  }
+                ]
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": true,
+                "items": [
+                  {
+                    "id": "7",
+                    "name": "3号鱼线",
+                    "x": 3,
+                    "y": 3,
+                    "lineWear": 14
+                  }
+                ]
+              }
+            ],
+            "equipment": {
+              "line": {
+                "id": "5",
+                "name": "1号鱼线",
+                "x": null,
+                "y": null,
+                "lineWear": 13
+              },
+              "reel": {
+                "id": "6",
+                "name": "1号渔轮-初学者",
+                "x": null,
+                "y": null
+              }
+            },
+            "quests": {
+              "version": 1,
+              "mainCompleted": 4,
+              "counts": [
+                0,
+                0
+              ],
+              "side1Done": true,
+              "mainRewarded": 5
+            }
+          }
+        },
+        "discoveries": {
+          "version": 1,
+          "fishIds": [
+            "TILAPIA",
+            "LONGNOSE_GAR",
+            "COMMON_CARP"
+          ]
+        }
+      }
+    },
+    {
+      "id": "3",
+      "createdAt": "2026-11-01T00:00:03.000Z",
+      "data": {
+        "inventory": {
+          "version": 1,
+          "backpackLevel": 9,
+          "items": [
+            {
+              "id": "1",
+              "name": "罗非鱼",
+              "x": 0,
+              "y": 0
+            },
+            {
+              "id": "2",
+              "name": "长吻雀鳝",
+              "x": null,
+              "y": null
+            },
+            {
+              "id": "3",
+              "name": "2号亮片",
+              "x": 2,
+              "y": 1,
+              "quantity": 23
+            }
+          ],
+          "storage": {
+            "version": 1,
+            "coins": 9012,
+            "activeBox": 9,
+            "boxes": [
+              {
+                "unlocked": true,
+                "items": [
+                  {
+                    "id": "4",
+                    "name": "普通鲤鱼",
+                    "x": 1,
+                    "y": 1
+                  }
+                ]
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": false,
+                "items": []
+              },
+              {
+                "unlocked": true,
+                "items": [
+                  {
+                    "id": "7",
+                    "name": "3号鱼线",
+                    "x": 3,
+                    "y": 3,
+                    "lineWear": 14
+                  }
+                ]
+              }
+            ],
+            "equipment": {
+              "line": {
+                "id": "5",
+                "name": "1号鱼线",
+                "x": null,
+                "y": null,
+                "lineWear": 13
+              },
+              "reel": {
+                "id": "6",
+                "name": "1号渔轮-初学者",
+                "x": null,
+                "y": null
+              }
+            },
+            "quests": {
+              "version": 1,
+              "mainCompleted": 4,
+              "counts": [
+                0,
+                0
+              ],
+              "side1Done": true,
+              "mainRewarded": 5
+            }
+          }
+        },
+        "discoveries": {
+          "version": 1,
+          "fishIds": [
+            "TILAPIA",
+            "LONGNOSE_GAR",
+            "COMMON_CARP"
+          ]
+        }
+      }
+    }
+  ]
+}

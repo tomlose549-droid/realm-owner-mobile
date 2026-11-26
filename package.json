@@ -1,9 +1,9 @@
 {
   "name": "realm-owner-mobile",
-  "version": "0.1.0",
+  "version": "0.74.0",
   "private": true,
   "type": "module",
-  "description": "realm owner mobile：独立触屏钓鱼副本",
+  "description": "realm owner mobile：独立触屏钓鱼副本，与电脑版0.74.0同步",
   "scripts": {
     "start": "node server.cjs",
     "test": "node --test tests/*.test.js"
@@ -54,6 +54,23 @@
       "backpack-upgrades.js",
       "quest-rules.js",
       "shop-quests.js",
+      "world-map.js",
+      "world-map-data.js",
+      "map-session.js",
+      "maps/amazon-confluence.js",
+      "maps/amazon-confluence-fish.js",
+      "amazon-scene.js",
+      "map-entry.js",
+      "maps/amazon-flooded-forest.js",
+      "maps/amazon-flooded-forest-fish.js",
+      "flooded-forest-scene.js",
+      "maps/sac-actun.js",
+      "maps/sac-actun-fish.js",
+      "cenote-scene.js",
+      "shop-progression.js",
+      "redeem-codes.js",
+      "multi-rod-rules.js",
+      "fishing-props.js",
       "mobile-controls.js"
     ],
     "styles": [

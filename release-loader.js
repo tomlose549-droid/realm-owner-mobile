@@ -13,6 +13,12 @@
       manifest=await response.json();
     }finally{clearTimeout(timer);}
     if(typeof manifest.version!=='string'||!/^\d+\.\d+\.\d+(?:-[\da-z.-]+)?(?:\+[\da-z.-]+)?$/i.test(manifest.version))throw new Error('版本号无效。');
+    // The 0.1.0 HTML has no world/menu markup. Fetch the current entry without touching saves.
+    if(!document.querySelector('#world-map')){
+      const next=new URL(location.href);
+      if(next.searchParams.get('mobile-ui')===manifest.version)throw new Error('页面仍是旧版，请稍后重新加载。原有存档已保留。');
+      next.searchParams.set('mobile-ui',manifest.version);location.replace(next.href);return;
+    }
     const release=manifest.fisherRealm;
     if(!release||!Array.isArray(release.modules)||!release.modules.includes('main.js')||!Array.isArray(release.styles)||!release.styles.length||!Array.isArray(release.preloadImages))throw new Error('版本资源清单无效。');
     const localPath=path=>{
@@ -34,6 +40,6 @@
     })));
     document.querySelector('#bootstrap-style')?.remove();
     for(const path of release.preloadImages){const link=document.createElement('link');link.rel='preload';link.as='image';link.href=assetUrl(path);link.fetchPriority='low';document.head.append(link);}
-    await import('./main.js');
+    await import('./world-map.js');
   }catch(error){console.error(error);showGameError('加载游戏失败，请检查网络后重新加载。详情：'+error.message);}
 })();

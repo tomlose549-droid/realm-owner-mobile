@@ -15,14 +15,15 @@ async function checkFish(selector) {
   assert.ok(Number.isSafeInteger(data.sellPrice)&&data.sellPrice>=0,'Confirm the new fish sale price before acceptance');
   const expected=createFishCatalog([data]).byId[data.id],profile=FISH_CATALOG.byId[data.id];
   assert.deepEqual(profile,expected);assert.deepEqual(FISH_ITEMS[data.name],data.inventory);
-  const {getMapEncounterTable}=await load('map-registry.js');
-  const range=getMapEncounterTable().ranges.find(r=>r.id===data.id);
+  const {getMapEncounterTable,listMaps}=await load('map-registry.js');
+  const map=listMaps().find(m=>getMapEncounterTable(m.id).probabilityFor(data.id)>0);
+  const encounters=map&&getMapEncounterTable(map.id),range=encounters?.ranges.find(r=>r.id===data.id);
   assert.ok(range&&range.units>0,'Confirm the new fish probability before acceptance');
-  assert.equal(pickFish((range.start+range.end)/20000),profile);
+  assert.equal(pickFish((range.start+range.end)/20000,encounters.fishPool,encounters),profile);
   const owner=new FishingSession(()=>0);
   assert.equal(owner.setForcedFish(data.name),true);owner.cast(0,0);
   assert.equal(owner.profile,profile);assert.equal(owner.fishStamina,data.stamina);
-  const fight=(fish,random=()=>0)=>{const f=new FishingSession(random,{fish});f.cast(0,0);assert.equal(f.hook(6),true);return f;};
+  const fight=(fish,random=()=>0)=>{const f=new FishingSession(random,{fish,timing:{minWait:6,maxWait:13,hookWindow:1.45}});f.cast(0,0);assert.equal(f.hook(6),true);return f;};
   const durations=data.struggle.durations??[data.struggle.firstDuration,data.struggle.secondDuration];
   for(const side of [0,1])for(const sample of [0,1]) {
     const rolls=[0,side,sample],moving=fight(profile,()=>rolls.shift()??0);
@@ -53,7 +54,7 @@ async function checkFish(selector) {
   const caught=fight({...profile,speed:0,stamina:0});caught.setRodYaw(caught.fishYaw,6);caught.setReeling(true,6);
   caught.advance(6+(FISHING.distance-FISHING.catchDistance)/(FISHING.baseSpeed*1.2)+.1);
   assert.equal(caught.lastCatchName,data.name);assert.equal(caught.lastCatchColor,data.catchColor??DEFAULT_CATCH_COLOR);
-  const bag=new FishInventory(),capacity=Math.floor(5/data.inventory.w)*Math.floor(3/data.inventory.h);
+  const bag=new FishInventory(),capacity=Math.floor(bag.width/data.inventory.w)*Math.floor(bag.height/data.inventory.h);
   for(let i=0;i<=capacity;i++)bag.add(data.name);
   assert.equal(bag.items.at(-1).x,null);
   assert.deepEqual(new FishInventory(bag.serialize()).serialize(),bag.serialize());
