@@ -1,3 +1,4 @@
+const {mapProgress}=require('./progression-fixture.cjs');
 // Local-only acceptance: fresh contexts never use a player's browser save.
 const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
@@ -30,7 +31,14 @@ async function main() {
   const {buildFishHelp} = await import(pathToFileURL(path.join(root, 'fish-help.js')).href);
   const fish = FISH_DATA.find(f => f.id === selector || f.name === selector);
   assert.ok(fish, `Unknown fish: ${selector}`);
-  const help = buildFishHelp([fish]).profiles[0];
+  const {listMaps,getMapEncounterTable,getMapContext}=await import(pathToFileURL(path.join(root,'map-registry.js')).href);
+  const map=listMaps().find(m=>getMapEncounterTable(m.id).probabilityFor(fish.id)>0);
+  assert.ok(map,'Requested fish needs a positive probability in a registered map');
+  const {BACKPACK_LEVELS}=await import(pathToFileURL(path.join(root,'backpack-upgrades.js')).href);
+  const bagLevel=BACKPACK_LEVELS.find(level=>level.w>=fish.inventory.w&&level.h>=fish.inventory.h)?.level;
+  assert.notEqual(bagLevel,undefined,'Fish needs a compatible backpack tier');
+  const entryCoins=getMapContext(map.id).entryFee*2;
+  const help = buildFishHelp([fish],getMapEncounterTable(map.id)).profiles[0];
   const sourcePath = fish.inventory.image && '/fish-images/' + fish.inventory.image;
   const thumbPath = fish.inventory.image && '/fish-images/thumbnails/' + fish.inventory.image.replace(/\.[^./]+$/, '.webp');
   for (const asset of [sourcePath, thumbPath].filter(Boolean))
@@ -61,13 +69,16 @@ async function main() {
       try {
         const page = await context.newPage(), errors = [];
         page.on('pageerror', error => errors.push(error.message));
-        if (saved) await page.addInitScript(name => {
-          if (!localStorage.getItem('realm-owner-mobile-inventory-v1')) localStorage.setItem(
-            'realm-owner-mobile-inventory-v1', JSON.stringify({version:1, items:[
-              {id:'1', name, x:0, y:0}, {id:'2', name, x:null, y:null}]}));
-        }, fish.name);
+        await page.addInitScript(({name,backpackLevel,entryCoins,saved,progress}) => {
+          if (!localStorage.getItem('realm-owner-mobile-save-slots-v1')&&!localStorage.getItem('realm-owner-mobile-inventory-v1')) localStorage.setItem(
+            'realm-owner-mobile-inventory-v1', JSON.stringify({version:1, backpackLevel, storage:{version:1,coins:entryCoins,quests:{version:1,mainCompleted:0,counts:[0,0],side1Done:false,shop:progress}}, items:saved?[
+              {id:'1', name, x:0, y:0}, {id:'2', name, x:null, y:null}]:[]}));
+        }, {name:fish.name,backpackLevel:bagLevel,entryCoins,saved,progress:mapProgress});
         await page.goto('http://127.0.0.1:' + server.address().port + '/', {waitUntil:'domcontentloaded'});
-        await page.locator('#loading').waitFor({state:'hidden'});
+        await page.waitForFunction(()=>window.worldMap?.getState().ready);
+        await page.locator(`[data-map-id="${map.id}"]`).click();
+        await page.locator(`[data-map-id="${map.id}"]`).click();
+        await page.waitForFunction(()=>window.lakeside?.getState().screen==='lake');
         await page.locator('#settings-toggle').click();
         await page.locator('#realm-command').fill('realm owner');
         assert.deepEqual(await page.locator('#owner-fish option').allTextContents(), FISH_DATA.map(f => f.name));
@@ -126,10 +137,13 @@ async function main() {
         }
         await page.locator('#fish-guide-close').click();
         await page.reload({waitUntil:'domcontentloaded'});
-        await page.locator('#loading').waitFor({state:'hidden'});
+        await page.waitForFunction(()=>window.worldMap?.getState().ready);
+        await page.locator(`[data-map-id="${map.id}"]`).click();
+        await page.locator(`[data-map-id="${map.id}"]`).click();
+        await page.waitForFunction(()=>window.lakeside?.getState().screen==='lake');
         assert.equal((await page.evaluate(() => window.lakeside.getState())).inventory.items.length, saved ? 2 : 0);
         if (saved) assert.deepEqual(await page.evaluate(() => JSON.parse(
-          localStorage.getItem('realm-owner-mobile-discoveries-v1')).fishIds), [fish.id]);
+          localStorage.getItem('realm-owner-mobile-save-slots-v1')).slots.find(s=>s.id===window.lakeside.getState().activeSave).data.discoveries.fishIds), [fish.id]);
         assert.ok(requests.filter(p=>p.startsWith('/fish-images/')).every(p=>p===thumbPath||p===sourcePath),
           'Selected-fish acceptance must not request any old fish images');
         assert.deepEqual(errors, []);

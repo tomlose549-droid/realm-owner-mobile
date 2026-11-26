@@ -8,7 +8,8 @@ import {createPlayerStorage,PLAYER_STORAGE_KEY} from '../player-storage.js';
 import {createSaveSlots} from '../save-slots.js';
 import {createLureCasting} from '../lure-casting.js';
 import {SUMMER_POND_ENCOUNTERS as encounters} from '../maps/summer-pond-fish.js';
-import {FishingSession,TILAPIA,durabilityTier} from '../fishing-rules.js';
+import {TILAPIA,durabilityTier} from '../fishing-rules.js';
+import {CombatSession as FishingSession} from './helpers/combat-session.js';
 import {SHOP_ITEMS} from '../item-data.js';
 const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-8,`${a} != ${b}`);
 const memory=()=>{const map=new Map();let blocked=false;return {map,set blocked(v){blocked=v;},getItem:k=>map.get(k)??null,setItem(k,v){if(blocked)throw Error('quota');map.set(k,v);},removeItem:k=>map.delete(k)};};
@@ -92,7 +93,7 @@ test('line recovery reaches equipped maximum and color tiers use percentage, not
   assert.equal(durabilityTier(75,125),'yellow');assert.equal(durabilityTier(25,125),'orange');assert.equal(durabilityTier(6.25,125),'red');assert.equal(durabilityTier(76,125),'normal');assert.equal(session.snapshot(1.45).durabilityMaximum,125);
 });
 test('four selected tackle assets have matching hashes, lightweight proportional thumbnails, and shared line art',async()=>{
-  assert.equal(new Set(SHOP_ITEMS.filter(i=>i.kind==='line').map(i=>i.image)).size,1);
+  assert.equal(new Set(SHOP_ITEMS.filter(i=>i.kind==='line'&&i.shop==='starter').map(i=>i.image)).size,1);
   for(const name of ['line-1','lure-1','lure-2','reel-1']){
     const read=p=>readFile(new URL('../'+p,import.meta.url)),full=await read(`fish-images/tackle/${name}.png`),thumb=await read(`fish-images/thumbnails/tackle/${name}.webp`),meta=JSON.parse(await read(`fish-images/thumbnails/tackle/${name}.webp.meta.json`));
     assert.equal(createHash('sha256').update(full).digest('hex'),meta.fullSHA256);assert.equal(createHash('sha256').update(thumb).digest('hex'),meta.thumbnailSHA256);assert.ok(thumb.length<180000);assert.ok(meta.size[0]<=512&&meta.size[1]<=384);const scale=Math.min(512/full.readUInt32BE(16),384/full.readUInt32BE(20),1);assert.ok(Math.abs(full.readUInt32BE(16)*scale-meta.size[0])<=1);assert.ok(Math.abs(full.readUInt32BE(20)*scale-meta.size[1])<=1);assert.equal(meta.lossless,true);
