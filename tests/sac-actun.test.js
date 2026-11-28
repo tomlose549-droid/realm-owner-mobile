@@ -14,7 +14,7 @@ import {createMap} from '../cenote-scene.js';
 
 test('Sac Actun is registered as an independent 45-coin map with its own preview and fixed rocky bank',()=>{
  const c=getMapContext(map.id),loc=WORLD_LOCATIONS.find(l=>l.id===map.id);
- assert.equal(listMaps().length,WORLD_LOCATIONS.length);assert.equal(c.entryFee,45);assert.equal(mapEntryFee(map.id),45);assert.equal(loc.markerId,'world-sac-actun-point');assert.equal(loc.preview,'map-images/sac-actun-preview.png');assert.ok(loc.latitude>20&&loc.latitude<21&&loc.longitude< -87&&loc.longitude> -88);assert.equal(c.labels.spot,'洞穴岩岸');assert.equal(c.isWater(map.spawn.position[0],map.spawn.position[2]),false);
+ assert.equal(listMaps().length,WORLD_LOCATIONS.length);assert.equal(c.entryFee,45);assert.equal(mapEntryFee(map.id),45);assert.equal(loc.markerId,'world-sac-actun-point');assert.equal(loc.preview,'map-images/mobile/sac-actun-preview.webp');assert.ok(loc.latitude>20&&loc.latitude<21&&loc.longitude< -87&&loc.longitude> -88);assert.equal(c.labels.spot,'洞穴岩岸');assert.equal(c.isWater(map.spawn.position[0],map.spawn.position[2]),false);
  const [x,,z]=map.spawn.position;assert.equal(c.isWater(x-Math.sin(map.spawn.yaw)*23,z-Math.cos(map.spawn.yaw)*23,.98),true);assert.ok(getMapDefinition(map.id).load);assert.throws(()=>map.water.radii[0]=100,TypeError);
 });
 test('water follows its actual enclosing shore and rock ledge, ignoring underwater wood and tree roots',()=>{

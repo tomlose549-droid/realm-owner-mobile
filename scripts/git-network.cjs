@@ -89,6 +89,8 @@ async function main() {
   if(action==='push') {
     assert.ok(!['main','master'].includes(branch), 'Use a work branch; no direct main push');
     assert.equal((await git('status','--porcelain')).trim(), '', 'Commit reviewed changes before pushing');
+    // A stale content key would keep serving old files after an otherwise valid push.
+    await invoke(process.execPath,[path.join(root,'scripts/build-release.cjs'),'--check']);
   }
   const api=async(method,endpoint,body)=>{
     try {

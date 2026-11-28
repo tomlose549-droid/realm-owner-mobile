@@ -77,7 +77,7 @@ const coinControls=createCoinControls({store:playerStorage,toast,onOpen:prepareM
 const lureCasting=createLureCasting({store:playerStorage,getEncounters:encounters});
 const shop=createShop({store:playerStorage,getEncounters:encounters,onOpen:prepareModal,onClose:finishModal,isFishing:()=>fishing.isActive()});
 const mapSession=createMapSession({
-  createMap:id=>createMapRuntime({scene,camera,renderer,id}),
+  createMap:id=>createMapRuntime({scene,camera,renderer,id,fine}),
   createFishing:(next,ownerState)=>createFishing({ownerState,onRoundEnd:outcome=>lureCasting.finish(outcome),prepareCast:options=>lureCasting.prepare(options),beginFight:()=>lureCasting.beginFight(),scene,camera,player:next.playerPosition,mapContext:next.context,canvas,idleRod:rod,toast,getTime:()=>gameTime.now(),onCaught:name=>{inventory.addFish(name);discoveries.unlock(name);},onReady:heading=>{targetYaw=heading;targetPitch=next.context.spawn.pitch;keys.clear();stopDragging();},onCast:()=>{dismissWelcome();keys.clear();stopDragging();},onHook:()=>{keys.clear();stopDragging();}}),
   onRelease:()=>renderer.renderLists.dispose()
 });

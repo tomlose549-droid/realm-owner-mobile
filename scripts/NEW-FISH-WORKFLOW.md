@@ -42,3 +42,5 @@ node scripts/check-new-fish.cjs NEW_FISH_ID
 在限制进程管理的沙箱中，超时/清理测试需要允许终止本任务子进程的执行环境；不能忽略权限错误后继续上传。验收报告和截图只保存在被 Git 忽略的 `.qa/`，不作为游戏存档。
 
 新增鱼必须确认每条鱼的金币售价，填入模板“售价金币”及配置 `sellPrice`；不得遗漏或默认零价。不因加鱼处理旧鱼图片。
+
+手机版0.77.0起，check-new-fish在规则通过后自动刷新内容缓存哈希和预加载依赖元数据（package.json），提交时一并保留此变更；不运行build:images，不处理任何旧鱼图片。其他修改提交前运行npm run build:release和npm run check:release，git-network push会拒绝陈旧元数据，以免已改变的鱼配置仍被旧缓存覆盖。

@@ -28,11 +28,14 @@
     };
     // Validate the whole manifest before installing any release state.
     for(const path of [...release.modules,...release.styles,...release.preloadImages])localPath(path);
-    const assetUrl=path=>{const url=new URL(path,base);if(url.origin!==base.origin||!url.pathname.startsWith(base.pathname))throw new Error('资源路径超出游戏目录。');url.searchParams.set('v',manifest.version);return url.href;};
-    globalThis.fisherRelease=Object.freeze({version:manifest.version,assetUrl});
+    const assetUrl=path=>{const url=new URL(path,base);if(url.origin!==base.origin||!url.pathname.startsWith(base.pathname))throw new Error('资源路径超出游戏目录。');url.searchParams.set('v',release.assets?.[url.pathname.slice(base.pathname.length)]??manifest.version);return url.href;};
+    const preloaded=new Set(),allowed=new Set(release.modules);
+    function preloadModules(entry){const stack=[entry];while(stack.length){const file=stack.pop();if(!allowed.has(file)||preloaded.has(file))continue;preloaded.add(file);const link=document.createElement('link');link.rel='modulepreload';link.href=assetUrl(file);document.head.append(link);for(const dependency of release.dependencies?.[file]??[])stack.push(dependency);}}
+    globalThis.fisherRelease=Object.freeze({version:manifest.version,assetUrl,preloadModules,preloadMap:id=>{preloadModules('main.js');preloadModules(release.mapModules?.[id]);}});
     document.querySelector('#game-version').textContent='V'+manifest.version;
     const imports=Object.fromEntries(release.modules.map(path=>[localPath(path).href,assetUrl(path)]));
     const map=document.createElement('script');map.type='importmap';map.textContent=JSON.stringify({imports});document.head.append(map);
+    preloadModules('world-map.js');
     // Do not start rendering until the versioned stylesheet is available.
     await Promise.all(release.styles.map(path=>new Promise((resolve,reject)=>{
       const link=document.createElement('link');link.rel='stylesheet';link.href=assetUrl(path);

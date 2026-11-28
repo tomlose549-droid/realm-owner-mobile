@@ -1,86 +1,451 @@
 {
   "name": "realm-owner-mobile",
-  "version": "0.76.1",
+  "version": "0.77.0",
   "private": true,
   "type": "module",
-  "description": "realm owner mobile：独立触屏钓鱼副本，与电脑版0.76.1同步",
+  "description": "realm owner mobile：触屏钓鱼与轻量加载",
   "scripts": {
     "start": "node server.cjs",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "build:images": "python scripts/build-map-images.py",
+    "build:release": "node scripts/build-release.cjs",
+    "build": "npm run build:images && npm run build:release",
+    "check:release": "node scripts/build-release.cjs --check"
   },
   "dependencies": {
     "three": "0.186.1"
   },
   "fisherRealm": {
     "modules": [
-      "main.js",
-      "game-time.js",
-      "inventory.js",
-      "inventory-rules.js",
-      "inventory-images.js",
-      "owner-panel.js",
-      "fishing.js",
-      "fishing-rules.js",
+      "amazon-quality.js",
+      "amazon-scene.js",
+      "backpack-upgrades.js",
+      "cenote-scene.js",
+      "equipment-rules.js",
       "fish-data.js",
+      "fish-discoveries.js",
       "fish-encounters.js",
-      "maps/summer-pond-fish.js",
+      "fish-guide.js",
+      "fish-help.js",
       "fishing-audio.js",
-      "pond-boundary.js",
-      "pond-scene.js",
-      "maps/summer-pond.js",
+      "fishing-props.js",
+      "fishing-rules.js",
+      "fishing.js",
+      "flooded-forest-scene.js",
+      "foliage-support.js",
+      "game-time.js",
+      "idle-rod.js",
+      "inventory-images.js",
+      "inventory-rules.js",
+      "inventory.js",
+      "item-card.js",
+      "item-data.js",
+      "lure-casting.js",
+      "lure-encounters.js",
+      "main.js",
+      "map-entry.js",
       "map-registry.js",
       "map-runtime.js",
-      "scene-resources.js",
-      "idle-rod.js",
-      "water-effects.js",
-      "release-assets.js",
-      "vendor/three.module.js",
-      "vendor/three.core.js",
-      "fish-help.js",
-      "fish-guide.js",
-      "fish-discoveries.js",
-      "storage-rules.js",
-      "player-storage.js",
-      "item-card.js",
-      "warehouse.js",
-      "save-slots.js",
-      "save-panel.js",
-      "item-data.js",
-      "lure-encounters.js",
-      "lure-casting.js",
-      "shop.js",
-      "equipment-rules.js",
-      "refit.js",
-      "backpack-upgrades.js",
-      "quest-rules.js",
-      "shop-quests.js",
-      "world-map.js",
-      "world-map-data.js",
       "map-session.js",
-      "maps/amazon-confluence.js",
       "maps/amazon-confluence-fish.js",
-      "amazon-scene.js",
-      "map-entry.js",
-      "maps/amazon-flooded-forest.js",
+      "maps/amazon-confluence.js",
       "maps/amazon-flooded-forest-fish.js",
-      "flooded-forest-scene.js",
-      "maps/sac-actun.js",
+      "maps/amazon-flooded-forest.js",
       "maps/sac-actun-fish.js",
-      "cenote-scene.js",
-      "shop-progression.js",
-      "redeem-codes.js",
-      "multi-rod-rules.js",
-      "fishing-props.js",
+      "maps/sac-actun.js",
+      "maps/summer-pond-fish.js",
+      "maps/summer-pond.js",
       "mobile-controls.js",
-      "amazon-quality.js",
+      "multi-rod-rules.js",
+      "owner-panel.js",
+      "player-storage.js",
+      "pond-boundary.js",
+      "pond-scene.js",
+      "quest-rules.js",
+      "redeem-codes.js",
+      "refit.js",
+      "release-assets.js",
       "render-settings.js",
+      "save-panel.js",
+      "save-slots.js",
       "scene-materials.js",
       "scene-quality.js",
-      "foliage-support.js"
+      "scene-resources.js",
+      "scene-texture-data.js",
+      "scene-texture-worker.js",
+      "shop-progression.js",
+      "shop-quests.js",
+      "shop.js",
+      "storage-rules.js",
+      "vendor/three.core.js",
+      "vendor/three.module.js",
+      "warehouse.js",
+      "water-effects.js",
+      "world-map-data.js",
+      "world-map.js"
     ],
     "styles": [
       "style.css"
     ],
-    "preloadImages": []
+    "preloadImages": [],
+    "dependencies": {
+      "amazon-quality.js": [
+        "scene-materials.js",
+        "vendor/three.module.js"
+      ],
+      "amazon-scene.js": [
+        "amazon-quality.js",
+        "foliage-support.js",
+        "maps/amazon-confluence.js",
+        "scene-resources.js",
+        "vendor/three.module.js"
+      ],
+      "backpack-upgrades.js": [],
+      "cenote-scene.js": [
+        "maps/sac-actun.js",
+        "scene-quality.js",
+        "scene-resources.js",
+        "vendor/three.module.js"
+      ],
+      "equipment-rules.js": [],
+      "fish-data.js": [],
+      "fish-discoveries.js": [
+        "fish-data.js"
+      ],
+      "fish-encounters.js": [
+        "fish-data.js"
+      ],
+      "fish-guide.js": [
+        "fish-data.js",
+        "fish-help.js",
+        "inventory-images.js"
+      ],
+      "fish-help.js": [
+        "fish-data.js",
+        "map-registry.js"
+      ],
+      "fishing-audio.js": [
+        "release-assets.js"
+      ],
+      "fishing-props.js": [
+        "fishing-rules.js",
+        "vendor/three.module.js"
+      ],
+      "fishing-rules.js": [
+        "fish-data.js",
+        "map-registry.js"
+      ],
+      "fishing.js": [
+        "fishing-audio.js",
+        "fishing-props.js",
+        "fishing-rules.js",
+        "multi-rod-rules.js",
+        "scene-resources.js",
+        "vendor/three.module.js",
+        "water-effects.js"
+      ],
+      "flooded-forest-scene.js": [
+        "amazon-quality.js",
+        "foliage-support.js",
+        "maps/amazon-confluence.js",
+        "maps/amazon-flooded-forest.js",
+        "scene-resources.js",
+        "vendor/three.module.js"
+      ],
+      "foliage-support.js": [
+        "maps/amazon-confluence.js"
+      ],
+      "game-time.js": [],
+      "idle-rod.js": [
+        "scene-resources.js",
+        "vendor/three.module.js"
+      ],
+      "inventory-images.js": [
+        "release-assets.js"
+      ],
+      "inventory-rules.js": [
+        "backpack-upgrades.js",
+        "fish-data.js",
+        "item-data.js"
+      ],
+      "inventory.js": [
+        "backpack-upgrades.js",
+        "item-card.js",
+        "item-data.js"
+      ],
+      "item-card.js": [
+        "equipment-rules.js",
+        "inventory-images.js",
+        "item-data.js"
+      ],
+      "item-data.js": [
+        "equipment-rules.js",
+        "fish-data.js",
+        "redeem-codes.js"
+      ],
+      "lure-casting.js": [
+        "lure-encounters.js"
+      ],
+      "lure-encounters.js": [
+        "fish-encounters.js",
+        "item-data.js"
+      ],
+      "main.js": [
+        "fish-data.js",
+        "fish-discoveries.js",
+        "fish-guide.js",
+        "fish-help.js",
+        "fishing.js",
+        "game-time.js",
+        "idle-rod.js",
+        "inventory-images.js",
+        "inventory.js",
+        "lure-casting.js",
+        "map-entry.js",
+        "map-registry.js",
+        "map-runtime.js",
+        "map-session.js",
+        "mobile-controls.js",
+        "owner-panel.js",
+        "player-storage.js",
+        "release-assets.js",
+        "render-settings.js",
+        "save-panel.js",
+        "save-slots.js",
+        "shop-progression.js",
+        "shop.js",
+        "vendor/three.module.js",
+        "warehouse.js"
+      ],
+      "map-entry.js": [],
+      "map-registry.js": [
+        "map-entry.js",
+        "maps/amazon-confluence-fish.js",
+        "maps/amazon-confluence.js",
+        "maps/amazon-flooded-forest-fish.js",
+        "maps/amazon-flooded-forest.js",
+        "maps/sac-actun-fish.js",
+        "maps/sac-actun.js",
+        "maps/summer-pond-fish.js",
+        "maps/summer-pond.js"
+      ],
+      "map-runtime.js": [
+        "map-registry.js",
+        "render-settings.js",
+        "scene-materials.js",
+        "vendor/three.module.js"
+      ],
+      "map-session.js": [],
+      "maps/amazon-confluence-fish.js": [
+        "fish-encounters.js"
+      ],
+      "maps/amazon-confluence.js": [],
+      "maps/amazon-flooded-forest-fish.js": [
+        "fish-encounters.js"
+      ],
+      "maps/amazon-flooded-forest.js": [
+        "maps/amazon-confluence.js"
+      ],
+      "maps/sac-actun-fish.js": [
+        "fish-encounters.js"
+      ],
+      "maps/sac-actun.js": [],
+      "maps/summer-pond-fish.js": [
+        "fish-encounters.js"
+      ],
+      "maps/summer-pond.js": [],
+      "mobile-controls.js": [],
+      "multi-rod-rules.js": [
+        "fish-data.js",
+        "fishing-rules.js"
+      ],
+      "owner-panel.js": [
+        "fishing-rules.js",
+        "redeem-codes.js"
+      ],
+      "player-storage.js": [
+        "storage-rules.js"
+      ],
+      "pond-boundary.js": [
+        "maps/summer-pond.js"
+      ],
+      "pond-scene.js": [
+        "maps/summer-pond.js",
+        "scene-quality.js",
+        "scene-resources.js",
+        "vendor/three.module.js"
+      ],
+      "quest-rules.js": [
+        "fish-data.js",
+        "shop-progression.js"
+      ],
+      "redeem-codes.js": [],
+      "refit.js": [
+        "equipment-rules.js",
+        "inventory-images.js",
+        "item-card.js",
+        "item-data.js"
+      ],
+      "release-assets.js": [],
+      "render-settings.js": [],
+      "save-panel.js": [
+        "item-data.js",
+        "save-slots.js"
+      ],
+      "save-slots.js": [
+        "fish-discoveries.js",
+        "player-storage.js"
+      ],
+      "scene-materials.js": [
+        "release-assets.js",
+        "scene-texture-data.js",
+        "vendor/three.module.js"
+      ],
+      "scene-quality.js": [
+        "scene-materials.js",
+        "vendor/three.module.js"
+      ],
+      "scene-resources.js": [],
+      "scene-texture-data.js": [],
+      "scene-texture-worker.js": [],
+      "shop-progression.js": [
+        "fish-data.js"
+      ],
+      "shop-quests.js": [
+        "backpack-upgrades.js",
+        "item-card.js",
+        "item-data.js",
+        "quest-rules.js",
+        "shop-progression.js"
+      ],
+      "shop.js": [
+        "backpack-upgrades.js",
+        "equipment-rules.js",
+        "inventory-images.js",
+        "item-data.js",
+        "lure-encounters.js",
+        "quest-rules.js",
+        "refit.js",
+        "shop-progression.js",
+        "shop-quests.js"
+      ],
+      "storage-rules.js": [
+        "backpack-upgrades.js",
+        "equipment-rules.js",
+        "inventory-rules.js",
+        "item-data.js",
+        "quest-rules.js",
+        "redeem-codes.js",
+        "shop-progression.js"
+      ],
+      "vendor/three.core.js": [],
+      "vendor/three.module.js": [
+        "vendor/three.core.js"
+      ],
+      "warehouse.js": [
+        "backpack-upgrades.js",
+        "item-card.js",
+        "item-data.js",
+        "storage-rules.js"
+      ],
+      "water-effects.js": [
+        "scene-resources.js",
+        "vendor/three.module.js"
+      ],
+      "world-map-data.js": [
+        "map-entry.js"
+      ],
+      "world-map.js": [
+        "player-storage.js",
+        "quest-rules.js",
+        "release-assets.js",
+        "save-slots.js",
+        "shop-progression.js",
+        "world-map-data.js"
+      ]
+    },
+    "mapModules": {
+      "summer-pond": "pond-scene.js",
+      "amazon-confluence": "amazon-scene.js",
+      "amazon-flooded-forest": "flooded-forest-scene.js",
+      "sac-actun": "cenote-scene.js"
+    },
+    "assets": {
+      "amazon-quality.js": "211ca9fab5a1bb86",
+      "amazon-scene.js": "f3a3ff47089a54cc",
+      "backpack-upgrades.js": "e208e7aa2dc7ddd3",
+      "cenote-scene.js": "6cf4731503566388",
+      "equipment-rules.js": "12703437b2f67698",
+      "fish-data.js": "99a5c8e5b1979771",
+      "fish-discoveries.js": "6779a81ed833561a",
+      "fish-encounters.js": "e64353eaa8ee5626",
+      "fish-guide.js": "74f2f129942ea96b",
+      "fish-help.js": "f2300aa61b536f75",
+      "fishing-audio.js": "e05ebbcd2c042616",
+      "fishing-props.js": "873dc3d55d09b8e7",
+      "fishing-rules.js": "0f4581cdbee7c4ef",
+      "fishing.js": "d8dd424bfe02a461",
+      "flooded-forest-scene.js": "1bb59cb5e60c1204",
+      "foliage-support.js": "67d5f2c873cfa702",
+      "game-time.js": "6f97a81ca37b342c",
+      "idle-rod.js": "e65ea6fbf3312f3a",
+      "inventory-images.js": "ce9b3a7c2661013f",
+      "inventory-rules.js": "62dce4ef88f8cf49",
+      "inventory.js": "7aeb04605133839e",
+      "item-card.js": "3bbf3568373071c0",
+      "item-data.js": "6793462185237710",
+      "lure-casting.js": "9a10b00bf3cdfe91",
+      "lure-encounters.js": "1913c3a819d157fe",
+      "main.js": "5fd5fd4ed7a7e6ca",
+      "map-entry.js": "41c58c41603e2b4d",
+      "map-registry.js": "e21c021ff4ff1d0e",
+      "map-runtime.js": "b360d882be421e29",
+      "map-session.js": "608d8385916a38dd",
+      "maps/amazon-confluence-fish.js": "3ae7bb69b0658e0f",
+      "maps/amazon-confluence.js": "ba707d162e8a6049",
+      "maps/amazon-flooded-forest-fish.js": "432c0c58c0510097",
+      "maps/amazon-flooded-forest.js": "2558180ea6f7575a",
+      "maps/sac-actun-fish.js": "46c2e44dd5197c78",
+      "maps/sac-actun.js": "5373e39e441ed487",
+      "maps/summer-pond-fish.js": "fa4d0cbe36159994",
+      "maps/summer-pond.js": "286104f7b19948b5",
+      "mobile-controls.js": "f459c7d6572fe586",
+      "multi-rod-rules.js": "80f49c2ae339daf2",
+      "owner-panel.js": "597d3aa77145ffa0",
+      "player-storage.js": "0958f42b687abdb5",
+      "pond-boundary.js": "70fdd9944c665470",
+      "pond-scene.js": "3327818c2ffc7bc6",
+      "quest-rules.js": "f41bd9481361d376",
+      "redeem-codes.js": "87e9cbe23bcd665e",
+      "refit.js": "03e01f6c2a20404c",
+      "release-assets.js": "a2321e973bad171f",
+      "render-settings.js": "ea051be82c700337",
+      "save-panel.js": "38fd45108323e26f",
+      "save-slots.js": "13e589827f7c5f9a",
+      "scene-materials.js": "e145e33f173d0634",
+      "scene-quality.js": "ea0c7ba49cc92938",
+      "scene-resources.js": "70f271f167a459e9",
+      "scene-texture-data.js": "9244057909b76ae9",
+      "scene-texture-worker.js": "2aab9d7fb7762858",
+      "shop-progression.js": "05391374a28e9d04",
+      "shop-quests.js": "75c691abfd7e6f8b",
+      "shop.js": "182b8c5058158aa4",
+      "storage-rules.js": "12403e5db0f6dc23",
+      "vendor/three.core.js": "8bf68efebbef2b6f",
+      "vendor/three.module.js": "211760950dc7bdde",
+      "warehouse.js": "a77a556a836086b6",
+      "water-effects.js": "97b9cd05905f5747",
+      "world-map-data.js": "96d7a01747207bb7",
+      "world-map.js": "4cfb3bbb0e49eb12",
+      "style.css": "3b63955dd31ff4d1",
+      "map-images/mobile/world.webp": "cf0727fb38a1ecc7",
+      "map-images/mobile/okeechobee-preview.webp": "cfe47a81b2fb019e",
+      "map-images/mobile/amazon-preview.webp": "e89a1d87484339cd",
+      "map-images/mobile/flooded-forest-preview.webp": "185b24c12873e5f5",
+      "map-images/mobile/sac-actun-preview.webp": "b233bc64d42739b3",
+      "audio/hooked.wav": "78c13d9ac33e93cb",
+      "audio/line-broken.wav": "5ef762409766dce0",
+      "audio/caught.wav": "5cc708b6f9acabec"
+    }
   }
 }

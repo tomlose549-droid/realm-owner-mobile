@@ -33,6 +33,7 @@ async function main() {
     {name:'thumbnail', command:process.env.PYTHON || 'python', args:[
       path.join(root, 'scripts/build-inventory-thumbnails.py'), '--fish', fish.id, '--check'], timeoutMs:30000},
     {name:'rules', command:process.execPath, args:[path.join(root,'scripts/check-fish-rules.cjs'),fish.id], timeoutMs:60000},
+    {name:'release-metadata', command:process.execPath, args:[path.join(root,'scripts/build-release.cjs')], timeoutMs:10000},
     {name:'browser', command:process.execPath, args:[path.join(root, 'tests/browser/new-fish.cjs'), fish.id], timeoutMs:120000}
   ];
   const result=await executeSteps(steps, async step=>{
