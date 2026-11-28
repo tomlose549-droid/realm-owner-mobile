@@ -20,6 +20,7 @@
       next.searchParams.set('mobile-ui',manifest.version);location.replace(next.href);return;
     }
     const release=manifest.fisherRealm;
+    if(release?.modules?.includes('render-settings.js')&&!document.querySelector('#max-fps')){const next=new URL(location.href);if(next.searchParams.get('scene-ui')===manifest.version)throw new Error('页面仍是旧版本，请稍后重试。存档已保留。');next.searchParams.set('scene-ui',manifest.version);location.replace(next.href);return;}
     if(!release||!Array.isArray(release.modules)||!release.modules.includes('main.js')||!Array.isArray(release.styles)||!release.styles.length||!Array.isArray(release.preloadImages))throw new Error('版本资源清单无效。');
     const localPath=path=>{
       if(typeof path!=='string'||!path||path.startsWith('/')||path.includes('..')||/[\\:?#]/.test(path))throw new Error('资源路径无效。');

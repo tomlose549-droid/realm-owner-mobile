@@ -1,9 +1,9 @@
 {
   "name": "realm-owner-mobile",
-  "version": "0.74.0",
+  "version": "0.76.1",
   "private": true,
   "type": "module",
-  "description": "realm owner mobile：独立触屏钓鱼副本，与电脑版0.74.0同步",
+  "description": "realm owner mobile：独立触屏钓鱼副本，与电脑版0.76.1同步",
   "scripts": {
     "start": "node server.cjs",
     "test": "node --test tests/*.test.js"
@@ -71,7 +71,12 @@
       "redeem-codes.js",
       "multi-rod-rules.js",
       "fishing-props.js",
-      "mobile-controls.js"
+      "mobile-controls.js",
+      "amazon-quality.js",
+      "render-settings.js",
+      "scene-materials.js",
+      "scene-quality.js",
+      "foliage-support.js"
     ],
     "styles": [
       "style.css"

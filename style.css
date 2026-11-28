@@ -291,3 +291,5 @@ dialog:has(>.coin-balance){position:fixed;padding-top:53px}
 @media(max-width:600px){.fishing-meters{transform:none;width:calc(100vw - 155px);min-width:0}.fish-phase{white-space:normal;font-size:10px}}
 
 .world-mode #mobile-action{display:none!important}
+
+.frame-cap{display:flex;align-items:center;gap:10px;padding:7px 12px;font-size:12px;color:var(--cream)}.frame-cap select{font:inherit;color:inherit;background:#274c45;border:1px solid #e5eed14d;border-radius:7px;padding:6px 9px}.settings-panel .actions{flex-wrap:wrap}
