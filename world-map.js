@@ -25,6 +25,7 @@ function select(location){
   document.querySelector('#world-location-name').textContent=location.name;document.querySelector('#world-region').textContent=location.region;document.querySelector('#world-entry-fee').textContent=location.entryFee?`入场费：${location.entryFee} 金币`:'免费入场';
   preview.alt=location.name+' 3D场景预览';preview.hidden=false;document.querySelector('#world-preview-fallback').hidden=true;
   const source=assetUrl(location.preview);if(preview.src!==source)preview.src=source;
+  globalThis.fisherRelease?.preloadMap?.(location.id);
 }
 function layout(){
   const box=viewport.getBoundingClientRect(),ratio=(image.naturalWidth||1672)/(image.naturalHeight||941),w=Math.min(box.width-24,(box.height-24)*ratio),h=w/ratio;

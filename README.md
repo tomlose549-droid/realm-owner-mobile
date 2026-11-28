@@ -399,3 +399,17 @@ V0.25.1：黄鲶与弓鳍鱼的背包图片使用预加载的无损 WebP，RGBA 
 
 验证入口：npm test；node tests/browser/mobile.cjs；node tests/browser/mobile-upgrade.cjs；node tests/browser/all-map-quality.cjs；node tests/browser/amazon-floating-leaves.cjs；node tests/browser/mobile-maps.cjs。新增触屏拉鱼中切换画质/帧率检查，旧版三个存档和电脑版同域数据隔离检查。
 验收结果：441项规则/单元测试通过；mobile、mobile-upgrade、all-map-quality、amazon-floating-leaves、mobile-maps及release-cache六项浏览器专项通过。旧三个存档在首次正常操作前保持字节一致，切档/刷新后资产与记录保留；两轮四图释放后GPU计数均回到13个几何体/1张纹理。测试中的25/50/100上限实测约25/50/60帧，仅代表该测试环境，不承诺实际手机达到50或100帧。
+
+## 手机版加载优化（0.77.0）
+
+世界地图与四张地图预览改用独立的轻量WebP，原PNG全部保留。世界图保持1672×941，约1.87MB降至351KB；预览保持比例缩至最大960×600，各约100–137KB，五张展示图合计约10.10MB降至0.82MB。仅界面展示图编码改变，3D场景效果仍为0.76.1。
+
+启动器按静态依赖图并行modulepreload；选择地图时提前下载主程序和选中地图的依赖，不执行主程序、不创建3D、不加载其他地图的场景模块。缓存地址改为内容哈希；版本清单仍每次检查，未纳入哈希表的兼容资源沿用版本号。改变鱼数据或CSS时更新对应哈希，未变的引擎和地图图像继续复用缓存。
+
+程序化颜色/法线像素在临时Worker中生成，完成即终止；传输ArrayBuffer，不在线程间复制大像素数组。CPU像素缓存最多12MiB，四图实际共约10.25MiB，退出地图仍完整释放其GPU纹理。无Worker或加载失败时分任务回退。地图激活前仅对可见物体异步准备着色器，隐藏的资源持有网格不参与；失败释放场景并回滚，不扣入场费。游戏中不继续生成材质或运行Worker。触屏、鱼数值、概率、背包、存档和装备机制保持原实现。
+
+同一隔离触屏浏览器、模拟150ms延迟/750000字节每秒下载、首次点击预览后停留400ms：0.76.1→0.77.0，世界地图准备4.19→1.74秒，点击进入到首帧5.73→3.22秒，全程10.42→5.54秒，网络资源约4.72→1.36MB，最长主线程任务2.12→0.97秒。暖缓存全程2.29→2.15秒；实际手机和外网线路会有差异。
+
+验证：445项规则/单元测试；mobile、mobile-upgrade、all-map-quality、amazon-floating-leaves、mobile-maps、release-cache和mobile-loading浏览器专项。覆盖旧三个存档字节保留、触屏、四图双档、无Worker回退、编译失败释放/不扣费、重试仅扣一次、缓存内容更新与未变资源复用。性能记录在.qa/mobile-loading/acceptance.json。
+
+构建：地图源PNG更新时运行npm run build:images；任何运行时代码/样式/资源变更后运行npm run build:release，提交package.json中的生成元数据。npm run check:release验证哈希和依赖图。普通新鱼验收会自动刷新发布元数据，不重新生成地图展示图或任何旧鱼图片；git-network推送前拒绝陈旧元数据。npm run build串联展示图和元数据重建，不增加运行时依赖或GitHub Actions。

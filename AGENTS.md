@@ -72,3 +72,7 @@
 - 本仓库为独立realm-owner-mobile副本，不改电脑版。与电脑版0.76.1同步，保留原realm-owner-mobile-save-slots-v1及两个旧mobile键；禁止读取、迁入、删除或覆盖fisher-realm存档。更新不清空存档、不改变三个槽位ID。触屏抛竿按钮最多三根，咬钩须点对应地面竿；拉鱼时转竿与收线分别跟踪pointerId，抬起任一手指不能干扰另一根；失焦、切后台、弹窗和离图停止收线。抄网点击水波气泡处，网内挣扎点场景确认。
 
 - 用户授权此次手机版同步全地图高低画质、25/50/100帧上限和亚马逊悬空植被修复。默认高画质25帧，反射按时间限频；画质偏好键为realm-owner-mobile-render-settings-v1，独立于进度槽和电脑版偏好。低档保留原正常画面，水面浮叶保留。新旧两档资源同一资源域管理，切换不可打断钓鱼或改变存档；旧入口缺少max-fps时重新请求HTML，不清理任何存档。测试包括mobile-upgrade、mobile、all-map-quality、amazon-floating-leaves和mobile-maps。
+
+- 手机版0.77.0优化加载，不改0.76.1的3D视觉或游戏规则。map-images/mobile/*.webp是界面轻量展示，原PNG保留；仅地图素材变更时运行build:images，不因加鱼重编码地图或旧鱼图片。
+- 所有运行时/样式/受控资产变更后必须执行npm run build:release并提交生成的package.json元数据，推送前npm run check:release。内容哈希按文件独立变化，静态依赖用于modulepreload；动态地图只预加载用户选中者，预览不能执行main或构建3D。新鱼check-new-fish会自动刷新元数据，git-network push先核对元数据，不能绕过陈旧哈希错误直接发布。
+- scene-texture-data.js必须保持原颜色和法线像素；Worker通过已校验的资源URL获取模块，完成后终止，CPU像素缓存硬上限12MiB。无Worker须分任务回退；不把像素缓存写入存档。map-runtime只预编译可见物体，失败释放场景，沿用map-entry的原子收费和回滚；不能在钓鱼操作中继续初始化纹理。验收包含tests/browser/mobile-loading.cjs的限速前后对照、无Worker回退、编译失败/重试不重复扣费，以及原触屏/三槽存档/四图资源回归。

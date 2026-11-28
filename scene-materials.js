@@ -1,16 +1,17 @@
 import * as THREE from './vendor/three.module.js';
-export function surfaceTexture(kind,w,h){
- const height=new Float32Array(w*h),pixels=new Uint8Array(w*h*4),normal=new Uint8Array(w*h*4);
- const noise=(x,y)=>{let a=Math.imul(x+31,374761393)^Math.imul(y+17,668265263);a=Math.imul(a^(a>>>13),1274126177);return ((a^(a>>>16))>>>0)/4294967295;};
- for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-  const u=x/w,v=y/h,n=noise(x,y),coarse=noise(x>>3,y>>3);let a,rgb;
-  if(kind==='leaf'){const vein=Math.exp(-Math.abs(u-.5)*100),ribs=Math.pow(Math.max(0,Math.cos(v*95+Math.abs(u-.5)*20)),12);a=.52+vein*.3+ribs*.1+n*.05;rgb=[86+a*66,119+a*66,47+a*45];}
-  else if(kind==='wood'){const grain=Math.sin(u*21+Math.sin(v*150)*.12+Math.sin(u*6)*2);a=.45+grain*.17+coarse*.17+n*.06;rgb=[99+a*59,78+a*49,53+a*36];}
-  else if(kind==='bark'){const furrow=Math.pow(Math.abs(Math.sin(u*57+Math.sin(v*19)*.9+Math.sin(v*71)*.12)),.35);a=.12+furrow*.65+coarse*.13+n*.08;const moss=Math.max(0,Math.sin(u*22+v*7))*.15;rgb=[46+a*64-moss*10,44+a*57+moss*25,29+a*42];}
-  else if(kind==='stone'){a=.15+coarse*.5+n*.2+Math.sin(v*93+Math.sin(u*23)*.8)*.08;rgb=[135+a*66,137+a*60,123+a*48];}else if(kind==='grassland'){a=.15+coarse*.55+n*.3;rgb=[155+a*50,167+a*45,132+a*45];}else{a=.15+coarse*.55+n*.3;rgb=[68+a*55,64+a*39,38+a*31];}
-  const i=y*w+x,k=i*4;height[i]=a;pixels[k]=rgb[0];pixels[k+1]=rgb[1];pixels[k+2]=rgb[2];pixels[k+3]=255;
- }
- for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x,k=i*4,dx=height[y*w+(x+1)%w]-height[y*w+(x+w-1)%w],dy=height[((y+1)%h)*w+x]-height[((y+h-1)%h)*w+x],l=Math.hypot(dx*1.8,dy*1.8,1);normal[k]=128-dx*1.8/l*127;normal[k+1]=128-dy*1.8/l*127;normal[k+2]=128+127/l;normal[k+3]=255;}
- const make=(data,color)=>{const t=new THREE.DataTexture(data,w,h);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.colorSpace=color?THREE.SRGBColorSpace:THREE.NoColorSpace;t.needsUpdate=true;return t;};
- return {map:make(pixels,true),normalMap:make(normal,false)};
+import {assetUrl} from './release-assets.js';
+import {texturePixels} from './scene-texture-data.js';
+const cache=new Map(),pending=new Map(),MAX_BYTES=12*1024*1024;let bytes=0,worker=null,workerUnavailable=false,workerJobs=0,mainJobs=0;
+const kinds={"summer-pond":['bark','wood','grassland','ground','stone','leaf'],"amazon-confluence":['bark','wood','ground','leaf'],"amazon-flooded-forest":['bark','wood','ground','leaf'],"sac-actun":['stone','bark','leaf']};
+const keyFor=(kind,w,h)=>kind+':'+w+':'+h,yieldTask=()=>new Promise(resolve=>setTimeout(resolve,0));
+function remember(key,value){if(cache.has(key))return cache.get(key);const size=value.pixels.byteLength+value.normal.byteLength;if(size>MAX_BYTES)return value;while(cache.size&&bytes+size>MAX_BYTES){const first=cache.keys().next().value,old=cache.get(first);bytes-=old.pixels.byteLength+old.normal.byteLength;cache.delete(first);}cache.set(key,value);bytes+=size;return value;}
+function local(kind,w,h){const key=keyFor(kind,w,h);if(cache.has(key))return cache.get(key);mainJobs++;return remember(key,texturePixels(kind,w,h));}
+function finish(key,value){const job=pending.get(key);if(!job)return;clearTimeout(job.timer);pending.delete(key);if(value)remember(key,value);job.resolve();if(!pending.size){worker?.terminate();worker=null;}}
+function failWorker(){workerUnavailable=true;worker?.terminate();worker=null;for(const [key,job]of [...pending]){clearTimeout(job.timer);pending.delete(key);job.resolve();}}
+function prepare(kind,w,h){const key=keyFor(kind,w,h);if(cache.has(key))return Promise.resolve();if(pending.has(key))return pending.get(key).promise;if(typeof Worker==='undefined'||workerUnavailable)return Promise.resolve();
+ if(!worker)try{worker=new Worker(assetUrl('./scene-texture-worker.js'),{type:'module'});worker.onmessage=({data})=>{if(data.error){finish(data.key);return;}workerJobs++;finish(data.key,{pixels:new Uint8Array(data.pixels),normal:new Uint8Array(data.normal)});};worker.onerror=failWorker;}catch{workerUnavailable=true;return Promise.resolve();}
+ let resolve;const promise=new Promise(r=>resolve=r),timer=setTimeout(failWorker,4000);pending.set(key,{promise,resolve,timer});worker.postMessage({key,kind,w,h,moduleUrl:assetUrl('./scene-texture-data.js')});return promise;
 }
+export async function prepareSurfaceTextures(id){const list=kinds[id]??[];await Promise.all(list.map(kind=>prepare(kind,kind==='leaf'?128:512,kind==='leaf'?256:512)));for(const kind of list){const w=kind==='leaf'?128:512,h=kind==='leaf'?256:512;if(!cache.has(keyFor(kind,w,h))){await yieldTask();local(kind,w,h);}}}
+export function surfaceTextureStats(){return {entries:cache.size,bytes,maxBytes:MAX_BYTES,pending:pending.size,workerActive:!!worker,workerJobs,mainJobs};}
+export function surfaceTexture(kind,w,h){const {pixels,normal}=local(kind,w,h);const make=(data,color)=>{const t=new THREE.DataTexture(data,w,h);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.colorSpace=color?THREE.SRGBColorSpace:THREE.NoColorSpace;t.needsUpdate=true;return t;};return {map:make(pixels,true),normalMap:make(normal,false)};}
